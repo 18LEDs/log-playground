@@ -1,0 +1,13 @@
+receivers:
+  http:
+    type: http
+    listen:
+      port: 8080
+      endpoint: /v1/input
+processors:
+  - type: json_parse
+    source: message
+outputs:
+  bitbucket:
+    type: file
+    path: /bitbucket/output.log
