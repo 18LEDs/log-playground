@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  log-generator:
+    build: ./log-generator
+  datadog-agent:
+    image: datadog/agent:latest
+    environment:
+      - DD_API_KEY=dummy
+      - DD_SITE=datadoghq.com
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_USE_HTTP=true
+      - DD_LOGS_CONFIG_LOGS_DD_URL=http://observability-pipelines:8080/v1/input
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  observability-pipelines:
+    image: gcr.io/datadoghq/observability-pipelines:latest
+    environment:
+      - PIPELINES_CONFIG=/config/pipeline.yaml
+    volumes:
+      - ./pipeline:/config:ro
+      - ./bitbucket:/bitbucket
+    ports:
+      - "8080:8080"
+  viewer:
+    image: busybox
+    command: tail -F /bitbucket/output.log
+    volumes:
+      - ./bitbucket:/bitbucket
